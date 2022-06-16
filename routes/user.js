@@ -1,8 +1,32 @@
+const { verifyToken, verifyTokenAndAuthorization } = require('./verifyToken')
 const router = require('express').Router()
+const User = require('../models/User')
 
-router.get("/test", (req, res) =>
+//UPDATE
+router.put("/:id", verifyTokenAndAuthorization, async (req, res) =>
 {
-    res.send("Test")
+    if (req.user.id === req.params.id || req.user.isAdmin)
+    {
+        if (req.body.password)
+        {
+            req.body.password = CryptoJS.AES.encrypt(
+                req.body.password,
+                process.env.PASS_SEC
+            ).toString()
+        }
+    }
+
+    try
+    {
+        const updateUser = await User.findByIdAndUpdate(req.params.id, {
+            $set: req.body
+        }, { new: true })
+
+        res.status(200).json(updateUser)
+    } catch (err)
+    {
+        res.status(500).json(err)
+    }
 })
 
 
